@@ -9,22 +9,21 @@ var searchFunc = function (path, search_id, content_id) {
                 return {
                     title: $("title", this).text(),
                     content: $("content", this).text(),
-                    url: $("link", this).attr("href")
+                    url: $("url", this).text()
                 };
             }).get();
             var $input = document.getElementById(search_id);
             var $resultContent = document.getElementById(content_id);
             $input.addEventListener('input', function () {
-                var str = '<div class=\"search-result-list\">';
+                var str = '<ul class=\"search-result-list\">';
                 var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
                 $resultContent.innerHTML = "";
                 if (this.value.trim().length <= 0) {
                     return;
                 }
                 // perform local searching
-                for (let index in datas) {
-                    let data = datas[index];
-                    //datas.forEach(function(data) {
+                var cnt = 1;
+                datas.forEach(function (data) {
                     var isMatch = true;
                     var content_index = [];
                     var data_title = data.title.trim().toLowerCase();
@@ -52,40 +51,32 @@ var searchFunc = function (path, search_id, content_id) {
                     }
                     // show search results
                     if (isMatch) {
-                        str += "<div class=\"search-result-list-item\"><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                        str += "<li><a href='" + data_url + "' class='search-result-title'>" + String(cnt) + ". " + data_title + "</a>";
+                        cnt += 1;
 
                         var content = data.content.trim().replace(/<[^>]+>/g, "");
                         if (first_occur >= 0) {
                             // cut out 100 characters
                             var start = first_occur - 20;
-                            var end = first_occur + 80;
                             if (start < 0) {
                                 start = 0;
                             }
-                            if (start == 0) {
-                                end = 100;
-                            }
-                            if (end > content.length) {
-                                end = content.length;
-                            }
-                            var match_content = content.substr(start, end);
+                            var match_content = content.substr(start, 100);
                             // highlight all keywords
                             keywords.forEach(function (keyword) {
                                 var regS = new RegExp(keyword, "gi");
                                 match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
                             });
 
-                            // str += "<p class=\"search-result\">" + match_content +"...</p>"
+                            str += "<p class=\"search-result\">" + match_content + "...</p>"
                         }
-                        str += "</div>";
+                        str += "</li>";
                     }
-                }
-                ;
-                str += "</div>";
+                });
+                str += "</ul>";
+                str = "<p class=\"search-result-summary\">共找到" + String(cnt-1) + "条结果</p>"  + str;
                 $resultContent.innerHTML = str;
             });
         }
     });
-};
-var path = "/search.xml";
-searchFunc(path, 'local-search-input', 'local-search-result');
+}
